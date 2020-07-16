@@ -1540,7 +1540,7 @@ try {
   const pipeline_id = core.getInput('pipeline_id');
   console.log(stage,status,team_id,custom,change_id,pipeline_id);
   fetch("http://www.example.com", function(e,m,b) {
-    console.log("body.toString()");
+    console.log(body.toString());
   });
 
   // Get the JSON webhook payload for the event that triggered the workflow
