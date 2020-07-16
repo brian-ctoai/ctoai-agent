@@ -1453,6 +1453,13 @@ try {
   const change_id = core.getInput('change_id');
   const pipeline_id = core.getInput('pipeline_id');
   const token = core.getInput('token');
+  const github_event = core.getInput('github_event');
+  const github_steps = core.getInput('github_steps');
+  const github_runner = core.getInput('github_runner');
+
+  console.log('github_event',github_event );
+  console.log('github_steps',github_steps );
+  console.log('github_runner',github_runner );
 
   const body = {
     change_id,
