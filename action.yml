@@ -1,13 +1,21 @@
 name: 'ctoai-agent'
 description: 'CTOai Delivery Metrics'
 inputs:
-  who-to-greet:  # id of input
-    description: 'Who to greet'
+  stage:
+    description: 'Stage'
+    required: false
+  status:
+    description: 'Status'
+    required: false
+  team_id:
+    description: 'Team ID'
     required: true
-    default: 'World'
-outputs:
-  time: # id of output
-    description: 'The time we greeted you'
+  custom:
+    description: 'Custom Payload'
+    required: false
+  change_id:
+    description: 'Change ID'
+    required: false
 runs:
   using: 'node12'
   main: 'dist/index.js'
