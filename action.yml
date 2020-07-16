@@ -16,6 +16,9 @@ inputs:
   change_id:
     description: 'Change ID'
     required: false
+  token:
+    description: 'Authorization Token'
+    required: true
 runs:
   using: 'node12'
   main: 'dist/index.js'
