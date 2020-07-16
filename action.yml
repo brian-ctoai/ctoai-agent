@@ -25,13 +25,13 @@ inputs:
   custom:
     description: 'Custom Payload'
     required: false
-  github_event:
+  gh_event:
     description: 'GitHub Agent Event Context'
     required: false
-  github_steps:
+  gh_steps:
     description: 'GitHub Agent Steps Context'
     required: false
-  github_runner:
+  gh_runner:
     description: 'GitHub Agent Runner Context'
     required: false
 runs:
