@@ -1,24 +1,30 @@
 name: 'ctoai-agent'
 description: 'CTOai Delivery Metrics'
 inputs:
+  token:
+    description: 'Authorization Token'
+    required: true
+  team_id:
+    description: 'Team ID'
+    required: true
   stage:
     description: 'Stage'
     required: false
   status:
     description: 'Status'
     required: false
-  team_id:
-    description: 'Team ID'
-    required: true
-  custom:
-    description: 'Custom Payload'
+  stage_ref:
+    description: 'Stage'
     required: false
   change_id:
     description: 'Change ID'
     required: false
-  token:
-    description: 'Authorization Token'
-    required: true
+  pipeline_id:
+    description: 'Pipeline ID'
+    required: false
+  custom:
+    description: 'Custom Payload'
+    required: false
 runs:
   using: 'node12'
   main: 'dist/index.js'

@@ -1468,11 +1468,12 @@ try {
       'Authorization': `Bearer ${token}`,
 			'Content-Type': 'application/json'
     },
-    body: JSON.stringify(body) 
+    body: JSON.stringify(body)
   };
   fetch("https://api.cto.sh/api/v1/events", opts)
     .then(res => res.json())
     .then(json => console.log(json))
+    .catch(err => console.error(err));
 
   // Get the JSON webhook payload for the event that triggered the workflow
   const event_payload = JSON.stringify(github.context.payload, undefined, 2);
