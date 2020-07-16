@@ -10,7 +10,7 @@ try {
   const change_id = core.getInput('change_id');
   const pipeline_id = core.getInput('pipeline_id');
   console.log(stage,status,team_id,custom,change_id,pipeline_id);
-  await fetch("http://www.example.com", function(e,m,b) {
+  fetch("http://www.example.com", function(e,m,b) {
     console.log("body.toString()");
   });
 
