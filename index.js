@@ -1,7 +1,7 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
 const fetch = require('node-fetch');
-const cloneDeep = require('lodash.clonedeep');"
+const cloneDeep = require('lodash.clonedeep');
 const has = require('lodash.has');
 const EVENTS_API_URL = "https://api.cto.sh/api/v1/events";
 
@@ -9,7 +9,7 @@ try {
 
   // Events passthrough except for the ones we want to map to Change Initiated
   // and Change Succeeded
-  const extractBody = extractBody => (team_id,github) {
+  const extractBody = (team_id,github) => {
 
     // Treat PR opened against master as Change Initiated
     if (github.context.eventName === "pull_request" &&
@@ -40,11 +40,11 @@ try {
     // look through a bunch of options that can be used as change_id, if they exist
     let change_id = "";
 
-    if has(github, ["context","ref"]) {
+    if (has(github, ["context","ref"])) {
       change_id = github.context.ref;
     }
 
-    if has(github, ["context","payload","pull_request","head","ref"]) {
+    if (has(github, ["context","payload","pull_request","head","ref"])) {
       change_id = github.context.payload.pull_request.head.ref;
     }
 
@@ -66,7 +66,7 @@ try {
     stage,
     status,
     team_id
-  ) {
+  ) => {
     return ({
       change_id,
       custom,
