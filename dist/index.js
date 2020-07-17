@@ -1453,13 +1453,13 @@ try {
   const change_id = core.getInput('change_id');
   const pipeline_id = core.getInput('pipeline_id');
   const token = core.getInput('token');
-  const github_event = core.getInput('github_event');
-  const github_steps = core.getInput('github_steps');
-  const github_runner = core.getInput('github_runner');
+  const gh_event = core.getInput('gh_event');
+  const gh_steps = core.getInput('gh_steps');
+  const gh_runner = core.getInput('gh_runner');
 
-  console.log('github_event',github_event );
-  console.log('github_steps',github_steps );
-  console.log('github_runner',github_runner );
+  console.log('gh_event',gh_event );
+  console.log('gh_steps',gh_steps );
+  console.log('gh_runner',gh_runner );
 
   const body = {
     change_id,
@@ -1482,10 +1482,10 @@ try {
     .then(json => console.log(json))
     .catch(err => console.error(err));
 
-  // Get the JSON webhook payload for the event that triggered the workflow
-  const event_payload = JSON.stringify(github.context.payload, undefined, 2);
-  console.log('------ event payload -------------------------------------------------');
-  console.log(`${event_payload}`);
+  console.log('------ github payload ----------------------------------------------------------');
+  console.log(JSON.stringify(github, undefined, 2));
+  console.log('------ github.context.payload -------------------------------------------------');
+  console.log(JSON.stringify(github.context.payload, undefined, 2));
 
 } catch (error) {
   core.setFailed(error.message);

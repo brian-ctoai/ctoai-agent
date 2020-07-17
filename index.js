@@ -40,7 +40,7 @@ try {
     .then(json => console.log(json))
     .catch(err => console.error(err));
 
-  console.log('------ event payload ----------------------------------------------------------');
+  console.log('------ github payload ----------------------------------------------------------');
   console.log(JSON.stringify(github, undefined, 2));
   console.log('------ github.context.payload -------------------------------------------------');
   console.log(JSON.stringify(github.context.payload, undefined, 2));
