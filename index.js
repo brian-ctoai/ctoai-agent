@@ -1,143 +1,70 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
 const fetch = require('node-fetch');
+const EVENTS_API_URL = "https://api.cto.sh/api/v1/events";
+
 const cloneDeep = require('lodash.clonedeep');
 const has = require('lodash.has');
-const EVENTS_API_URL = "https://api.cto.sh/api/v1/events";
+
+const sendEvent = require('./agent.js').sendEvent;
+const constructBody = require('./agent.js').constructBody;
+
+/*
+const fetchWrapped =  (params) => {
+  return (fetch(...params)
+    .then(res => res.json()));
+};
+*/
 
 try {
 
-  // Events passthrough except for the ones we want to map to Change Initiated
-  // and Change Succeeded
-  const extractBody = (team_id,github) => {
+  let team_id;
+  let token;
+  let change_id;
+  let custom;
+  let pipeline_id;
+  let stage;
+  let status;
 
-    // Treat PR opened against master as Change Initiated
-    if (github.context.eventName === "pull_request" &&
-        github.context.payload.pull_request.base.ref === "master" && 
-        github.context.payload.action === "opened") {
-      return ({
-        stage: "Change",
-        status: "Initiated",
-        change_id: github.context.payload.pull_request.head.ref,
-        team_id,
-        custom: JSON.stringify(github)
-      });
-    }
+  if (process.env.CTOAI_ACTION_ENVIRONMENT === "dev") {
+    console.log('env: dev');
+    team_id = "team-id-123";
+    token = process.env.PIPELINE_DASHBOARD_EVENTS_API_TOKEN;
+    change_id = "change-id-abc123";
+    custom = "{\"s\":[1,2,3],\"g\":4}";
+    pipeline_id = "pipeline-id-hijk";
+    stage = "test-stage-A";
+    status = "test-status-B";
+  } else {
 
-    // Treat PR merged to master as Change Succeeded
-    if (github.context.eventName === "pull_request" &&
-        github.context.payload.pull_request.base.ref === "master" && 
-        github.context.payload.action === "closed") {
-      return ({
-        stage: "Change",
-        status: "Succeeded",
-        change_id: github.context.payload.pull_request.head.ref,
-        team_id,
-        custom: JSON.stringify(github)
-      });
-    }
+    console.log('env: prd');
+    // mandatory params
+    team_id = core.getInput('team_id');
+    token = core.getInput('token');
 
-    // look through a bunch of options that can be used as change_id, if they exist
-    let change_id = "";
-
-    if (has(github, ["context","ref"])) {
-      change_id = github.context.ref;
-    }
-
-    if (has(github, ["context","payload","pull_request","head","ref"])) {
-      change_id = github.context.payload.pull_request.head.ref;
-    }
-
-    // Store data for events that haven't already matched
-    return ({
-      stage: github.context.eventName,
-      status: github.context.payload.action,
-      change_id,
-      team_id,
-      custom: JSON.stringify(github)
-    });
-
+    // optional params
+    change_id = core.getInput('change_id');
+    custom = core.getInput('custom');
+    pipeline_id = core.getInput('pipeline_id');
+    stage = core.getInput('stage');
+    status = core.getInput('status');
   }
 
-  const constructBody = (
+  const body = constructBody(
     change_id,
-    custom,
-    pipeline_id,
-    stage,
-    status,
-    team_id
-  ) => {
-    return ({
-      change_id,
-      custom,
-      pipeline_id,
-      stage,
-      status,
-      team_id
-    });
-  }
-
-  const sendEvent = (body, token, url) => {
-
-    const opts = {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(body)
-    };
-    fetch(url, opts)
-      .then(res => res.json())
-      .then(json => console.log(json))
-      .catch(err => console.error(err));
-  }
-
-  const getBody = (
-    change_id,
-    custom,
-    github,
-    pipeline_id,
-    stage,
-    status,
-    team_id
-  ) => {
-    if (change_id || custom || pipeline_id || stage || status) {
-      return constructBody(
-        change_id,
-        deepClone(custom),
-        pipeline_id,
-        stage,
-        status,
-        team_id
-      );
-    } else {
-      return extractBody(team_id, deepClone(github));
-    }
-  }
-
-  // mandatory params
-  const team_id = core.getInput('team_id');
-  const token = core.getInput('token');
-
-  // optional params
-  const change_id = core.getInput('change_id');
-  const custom = core.getInput('custom');
-  const pipeline_id = core.getInput('pipeline_id');
-  const stage = core.getInput('stage');
-  const status = core.getInput('status');
-
-  const body = getBody(
-    change_id,
-    custom,
-    github,
+    cloneDeep(custom),
+    cloneDeep(github),
     pipeline_id,
     stage,
     status,
     team_id
   );
 
-  sendEvent(body, token, EVENTS_API_URL);
+  //sendEvent(body, token, EVENTS_API_URL, fetchWrapped)
+  sendEvent(body, token, EVENTS_API_URL, fetch)
+    .then(res => console.log(res))
+    .then(json => console.log(json))
+    .catch(err => console.error(err));
 
 } catch (error) {
   core.setFailed(error.message);
