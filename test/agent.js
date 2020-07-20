@@ -1,22 +1,33 @@
+const assert = require("assert").strict;
 const cloneDeep = require("lodash.clonedeep");
+
 const sendEvent = require("../agent.js").sendEvent;
 const constructBody = require("../agent.js").constructBody;
 const extractBody = require("../agent.js").extractBody;
-const assert = require("assert").strict;
 
-const fetch = () => {
-  const out = {
-    id: 1107,
-    stage: "test-stage-A",
-    status: "test-status-B",
-    team_id: "team-id-123",
-    pipeline_id: "pipeline-id-hijk",
-    change_id: "change-id-abc123",
-    custom: { g: 4, s: [1, 2, 3] },
-    timestamp: "2020-07-17T19:24:29.100Z",
+const test_sendEvent = (function test_sendEvent() {
+  const body = { abc: "xyz" };
+  const token = "tokenxyz";
+
+  const fetchMock = (url_in, opts_in) => {
+    return { url_in, opts_in };
   };
-  return new Promise((success) => success(JSON.stringify(out)));
-};
+
+  const actual = sendEvent(body, token, "https://urlabc.tld", fetchMock);
+  const expected = {
+    url_in: "https://urlabc.tld",
+    opts_in: {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer tokenxyz",
+        "Content-Type": "application/json",
+      },
+      body: '{"abc":"xyz"}',
+    },
+  };
+  assert.deepStrictEqual(actual, expected);
+  console.log("[ OK ]", arguments.callee.name);
+})();
 
 // passthru
 const test_extractBody_passthrough = (function test_extractBody_passthrough() {
