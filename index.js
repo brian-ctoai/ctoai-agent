@@ -1,20 +1,16 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
 const fetch = require('node-fetch');
-const EVENTS_API_URL = "https://api.cto.sh/api/v1/events";
+
+const CTOAI_EVENTS_API_URL = process.env.CTOAI_EVENTS_API_URL;
+const CTOAI_ACTION_ENVIRONMENT = process.env.CTOAI_ACTION_ENVIRONMENT;
+const CTOAI_EVENTS_API_TOKEN = process.env.CTOAI_EVENTS_API_TOKEN;
 
 const cloneDeep = require('lodash.clonedeep');
 const has = require('lodash.has');
 
 const sendEvent = require('./agent.js').sendEvent;
 const constructBody = require('./agent.js').constructBody;
-
-/*
-const fetchWrapped =  (params) => {
-  return (fetch(...params)
-    .then(res => res.json()));
-};
-*/
 
 try {
 
@@ -26,10 +22,11 @@ try {
   let stage;
   let status;
 
-  if (process.env.CTOAI_ACTION_ENVIRONMENT === "dev") {
+  // this lets us develop locally against the live API
+  if (CTOAI_ACTION_ENVIRONMENT === "dev") {
     console.log('env: dev');
     team_id = "team-id-123";
-    token = process.env.PIPELINE_DASHBOARD_EVENTS_API_TOKEN;
+    token = CTOAI_EVENTS_API_TOKEN;
     change_id = "change-id-abc123";
     custom = "{\"s\":[1,2,3],\"g\":4}";
     pipeline_id = "pipeline-id-hijk";
@@ -38,7 +35,8 @@ try {
   } else {
 
     console.log('env: prd');
-    // mandatory params
+
+    // mandatory params -- however, failure is intended to be silent
     team_id = core.getInput('team_id');
     token = core.getInput('token');
 
@@ -60,11 +58,7 @@ try {
     team_id
   );
 
-  //sendEvent(body, token, EVENTS_API_URL, fetchWrapped)
-  sendEvent(body, token, EVENTS_API_URL, fetch)
-    .then(res => console.log(res))
-    .then(json => console.log(json))
-    .catch(err => console.error(err));
+  console.log(await sendEvent(body, token, CTOAI_EVENTS_API_URL, fetch));
 
 } catch (error) {
   core.setFailed(error.message);

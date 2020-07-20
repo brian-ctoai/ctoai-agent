@@ -79,7 +79,6 @@ module.exports.constructBody = constructBody;
 
 // This is not meant to be generic across request functions. reqFn is tightly
 // coupled to the fetch signature, but injecting it makes it easy to test. 
-//module.exports.sendEvent = (body, token, url, reqFn) => {
 const sendEvent = (body, token, url, reqFn) => {
   const opts = {
     method: 'POST',
@@ -89,6 +88,14 @@ const sendEvent = (body, token, url, reqFn) => {
     },
     body: JSON.stringify(body)
   };
-  return reqFn(url, opts);
+  return (reqFn(url, opts)
+    .then(res => {
+      if (res.status >= 400) {
+        return ({"HTTPErrorStatus":res.status, "HTTPErrorStatusText":res.statusText});
+      } else {
+        return res.json();
+      }
+    })
+  );
 };
 module.exports.sendEvent = sendEvent;

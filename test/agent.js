@@ -5,16 +5,39 @@ const sendEvent = require("../agent.js").sendEvent;
 const constructBody = require("../agent.js").constructBody;
 const extractBody = require("../agent.js").extractBody;
 
-const test_sendEvent = (function test_sendEvent() {
+const test_sendEvent_failure = (async function test_sendEvent_failure() {
   const body = { abc: "xyz" };
   const token = "tokenxyz";
 
   const fetchMock = (url_in, opts_in) => {
-    return { url_in, opts_in };
+    const outObj = {};
+    outObj.status = 403;
+    outObj.statusText  = 'Forbidden';
+    return new Promise(success => success(outObj));
   };
 
-  const actual = sendEvent(body, token, "https://urlabc.tld", fetchMock);
+  const actual = await sendEvent(body, token, "https://urlabc.tld", fetchMock);
   const expected = {
+    HTTPErrorStatus: 403,
+    HTTPErrorStatusText: 'Forbidden'
+  };
+  assert.deepStrictEqual(actual, expected);
+  console.log("[ OK ]", arguments.callee.name);
+})();
+
+const test_sendEvent_success = (async function test_sendEvent_success() {
+  const body = { abc: "xyz" };
+  const token = "tokenxyz";
+
+  const fetchMock = (url_in, opts_in) => {
+    const outObj = {};
+    outObj.json = () => (JSON.stringify({ url_in, opts_in }));
+    outObj.status = 201;
+    return new Promise(success => success(outObj));
+  };
+
+  const actual = await sendEvent(body, token, "https://urlabc.tld", fetchMock);
+  const expected = JSON.stringify({
     url_in: "https://urlabc.tld",
     opts_in: {
       method: "POST",
@@ -24,7 +47,7 @@ const test_sendEvent = (function test_sendEvent() {
       },
       body: '{"abc":"xyz"}',
     },
-  };
+  });
   assert.deepStrictEqual(actual, expected);
   console.log("[ OK ]", arguments.callee.name);
 })();
