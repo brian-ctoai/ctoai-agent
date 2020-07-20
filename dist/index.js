@@ -1445,16 +1445,18 @@ module.exports = opts => {
 const core = __webpack_require__(671);
 const github = __webpack_require__(918);
 const fetch = __webpack_require__(989);
-
-const CTOAI_EVENTS_API_URL = process.env.CTOAI_EVENTS_API_URL;
-const CTOAI_ACTION_ENVIRONMENT = process.env.CTOAI_ACTION_ENVIRONMENT;
-const CTOAI_EVENTS_API_TOKEN = process.env.CTOAI_EVENTS_API_TOKEN;
-
 const cloneDeep = __webpack_require__(138);
 const has = __webpack_require__(521);
 
 const sendEvent = __webpack_require__(879).sendEvent;
 const constructBody = __webpack_require__(879).constructBody;
+
+// PRD URL needs to be available in plaintext in the Action, so the public can use it.
+const CTOAI_EVENTS_API_URL = (process.env.CTOAI_EVENTS_API_URL ? process.env.CTOAI_EVENTS_API_URL : "https://api.cto.sh/api/v1/events");
+
+// Used for development
+const CTOAI_ACTION_ENVIRONMENT = process.env.CTOAI_ACTION_ENVIRONMENT;
+const CTOAI_EVENTS_API_TOKEN = process.env.CTOAI_EVENTS_API_TOKEN;
 
 try {
 
@@ -1466,7 +1468,7 @@ try {
   let stage;
   let status;
 
-  // this lets us develop locally against the live API
+  // This lets us develop locally against the live API
   if (CTOAI_ACTION_ENVIRONMENT === "dev") {
     console.log('env: dev');
     team_id = "team-id-123";
@@ -1477,14 +1479,17 @@ try {
     stage = "test-stage-A";
     status = "test-status-B";
   } else {
-
     console.log('env: prd');
 
-    // mandatory params -- however, failure is intended to be silent
+    //
+    // The following parameters come from the calling GitHub Action Workflow.
+    //
+
+    // Mandatory params (If they are not provided, failure is silent by design)
     team_id = core.getInput('team_id');
     token = core.getInput('token');
 
-    // optional params
+    // Optional params
     change_id = core.getInput('change_id');
     custom = core.getInput('custom');
     pipeline_id = core.getInput('pipeline_id');
@@ -1503,16 +1508,7 @@ try {
   );
 
   sendEvent(body, token, CTOAI_EVENTS_API_URL, fetch)
-    .then(res => {
-      try {
-        return res.json();
-      } catch (err) {
-        console.error(err);
-        return 'err';
-      }
-    })
-    .then(data => console.log(data))
-    .catch(err => console.error(err));
+    .then(x => console.log(x));
 
 } catch (error) {
   core.setFailed(error.message);
@@ -10321,7 +10317,6 @@ module.exports.constructBody = constructBody;
 
 // This is not meant to be generic across request functions. reqFn is tightly
 // coupled to the fetch signature, but injecting it makes it easy to test. 
-//module.exports.sendEvent = (body, token, url, reqFn) => {
 const sendEvent = (body, token, url, reqFn) => {
   const opts = {
     method: 'POST',
@@ -10331,7 +10326,15 @@ const sendEvent = (body, token, url, reqFn) => {
     },
     body: JSON.stringify(body)
   };
-  return reqFn(url, opts);
+  return (reqFn(url, opts)
+    .then(res => {
+      if (res.status >= 400) {
+        return ({"HTTPErrorStatus":res.status, "HTTPErrorStatusText":res.statusText});
+      } else {
+        return res.json();
+      }
+    })
+  );
 };
 module.exports.sendEvent = sendEvent;
 

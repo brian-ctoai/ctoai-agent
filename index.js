@@ -1,16 +1,18 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
 const fetch = require('node-fetch');
-
-const CTOAI_EVENTS_API_URL = process.env.CTOAI_EVENTS_API_URL;
-const CTOAI_ACTION_ENVIRONMENT = process.env.CTOAI_ACTION_ENVIRONMENT;
-const CTOAI_EVENTS_API_TOKEN = process.env.CTOAI_EVENTS_API_TOKEN;
-
 const cloneDeep = require('lodash.clonedeep');
 const has = require('lodash.has');
 
 const sendEvent = require('./agent.js').sendEvent;
 const constructBody = require('./agent.js').constructBody;
+
+// PRD URL needs to be available in plaintext in the Action, so the public can use it.
+const CTOAI_EVENTS_API_URL = (process.env.CTOAI_EVENTS_API_URL ? process.env.CTOAI_EVENTS_API_URL : "https://api.cto.sh/api/v1/events");
+
+// Used for development
+const CTOAI_ACTION_ENVIRONMENT = process.env.CTOAI_ACTION_ENVIRONMENT;
+const CTOAI_EVENTS_API_TOKEN = process.env.CTOAI_EVENTS_API_TOKEN;
 
 try {
 
@@ -22,7 +24,7 @@ try {
   let stage;
   let status;
 
-  // this lets us develop locally against the live API
+  // This lets us develop locally against the live API
   if (CTOAI_ACTION_ENVIRONMENT === "dev") {
     console.log('env: dev');
     team_id = "team-id-123";
@@ -33,14 +35,17 @@ try {
     stage = "test-stage-A";
     status = "test-status-B";
   } else {
-
     console.log('env: prd');
 
-    // mandatory params -- however, failure is intended to be silent
+    //
+    // The following parameters come from the calling GitHub Action Workflow.
+    //
+
+    // Mandatory params (If they are not provided, failure is silent by design)
     team_id = core.getInput('team_id');
     token = core.getInput('token');
 
-    // optional params
+    // Optional params
     change_id = core.getInput('change_id');
     custom = core.getInput('custom');
     pipeline_id = core.getInput('pipeline_id');
@@ -58,7 +63,8 @@ try {
     team_id
   );
 
-  console.log(await sendEvent(body, token, CTOAI_EVENTS_API_URL, fetch));
+  sendEvent(body, token, CTOAI_EVENTS_API_URL, fetch)
+    .then(x => console.log(x));
 
 } catch (error) {
   core.setFailed(error.message);
