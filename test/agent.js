@@ -4,6 +4,16 @@ const cloneDeep = require("lodash.clonedeep");
 const sendEvent = require("../agent.js").sendEvent;
 const constructBody = require("../agent.js").constructBody;
 const extractBody = require("../agent.js").extractBody;
+const snakeToTitleCase = require("../agent.js").snakeToTitleCase;
+
+const test_snakeToTitleCase = (function test_snakeToTitleCase() {
+  const actual = snakeToTitleCase("pull_request");
+  const expected = "PullRequest";
+
+  assert.equal(actual, expected);
+
+  console.log("[ OK ]", arguments.callee.name);
+})();
 
 const test_sendEvent_failure = (async function test_sendEvent_failure() {
   const body = { abc: "xyz" };
@@ -73,9 +83,10 @@ const test_extractBody_passthrough = (function test_extractBody_passthrough() {
   };
   const actual = extractBody("team-id-123", github_context);
   const expected = {
-    stage: "arbitrary_event",
-    status: "unknown_action",
+    stage: "ArbitraryEvent",
+    status: "UnknownAction",
     change_id: "arbitary-branch",
+    stage_ref: "arbitary-branch",
     team_id: "team-id-123",
     custom: {
       context: {
@@ -119,6 +130,7 @@ const test_extractBody_pr_closed = (function test_extractBody_pr_closed() {
     stage: "Change",
     status: "Succeeded",
     change_id: "branch1",
+    stage_ref: "branch1",
     team_id: "team-id-123",
     custom: {
       context: {
@@ -160,6 +172,7 @@ const test_extractBody = (function test_extractBody() {
     stage: "Change",
     status: "Succeeded",
     change_id: "branch1",
+    stage_ref: "branch1",
     team_id: "team-id-123",
     custom: {
       context: {
@@ -212,6 +225,7 @@ const test_constructBody_pr_closed = (function test_constructBody_pr_closed() {
     stage: "Change",
     status: "Succeeded",
     change_id: "branch1",
+    stage_ref: "branch1",
     team_id: "team-id-test1",
     custom: {
       context: {
@@ -270,6 +284,7 @@ const test_constructBody_pr_opened = (function test_constructBody_pr_opened() {
     stage: "Change",
     status: "Initiated",
     change_id: "branch1",
+    stage_ref: "branch1",
     team_id: "team-id-test1",
     custom: {
       context: {

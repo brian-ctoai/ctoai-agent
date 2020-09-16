@@ -1,5 +1,7 @@
 const cloneDeep = require('lodash.clonedeep');
 const has = require('lodash.has');
+const startCase = require('lodash.startcase');
+const camelCase =  require('lodash.camelcase');
 
 // PR events are caught and translated into change events, when applicable. 
 // Other events passthrough.
@@ -15,6 +17,7 @@ const extractBody = (team_id,github) => {
       stage: "Change",
       status: "Initiated",
       change_id: github.context.payload.pull_request.head.ref,
+      stage_ref: github.context.payload.pull_request.head.ref,
       team_id,
       custom: github
     });
@@ -28,6 +31,7 @@ const extractBody = (team_id,github) => {
       stage: "Change",
       status: "Succeeded",
       change_id: github.context.payload.pull_request.head.ref,
+      stage_ref: github.context.payload.pull_request.head.ref,
       team_id,
       custom: github
     });
@@ -44,16 +48,24 @@ const extractBody = (team_id,github) => {
     change_id = github.context.payload.pull_request.head.ref;
   }
 
+  const stage_ref = change_id;
+
   // Store data for events that haven't already matched
   return ({
-    stage: github.context.eventName,
-    status: github.context.payload.action,
+    stage: snakeToTitleCase(github.context.eventName),
+    status: snakeToTitleCase(github.context.payload.action),
     change_id,
+    stage_ref,
     team_id,
     custom: github
   });
 };
 module.exports.extractBody = extractBody;
+
+const snakeToTitleCase = (snake_str) => {
+ return startCase(camelCase(snake_str)).replace(' ','');
+}
+module.exports.snakeToTitleCase = snakeToTitleCase;
 
 const constructBody = ( change_id,
                         custom,
