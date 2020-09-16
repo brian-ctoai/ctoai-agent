@@ -13,7 +13,7 @@
     "lodash.clonedeep": "^4.5.0",
     "lodash.has": "^4.5.2",
     "lodash.startcase": "^4.4.0",
-    "node-fetch": "^2.6.0"
+    "node-fetch": "^2.6.1"
   },
   "scripts": {
     "test": "node test/*.js"
